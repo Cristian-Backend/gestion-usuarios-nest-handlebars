@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión de Usuarios</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="container">
+                <h1 class="logo">Gestión de Usuarios</h1>
+                <ul class="nav-links">
+                    <li><a href="/">Inicio</a></li>
+                    {{#if user}}
+                        <li><a href="/dashboard">Panel</a></li>
+                        {{#if user.isAdmin}}
+                            <li><a href="/admin">Administración</a></li>
+                        {{/if}}
+                        <li><a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+                    {{else}}
+                        <li><a href="/login">Iniciar Sesión</a></li>
+                        <li><a href="/register">Registrarse</a></li>
+                    {{/if}}
+                </ul>
+            </div>
+        </nav>
+    </header>
+    
+    <main>
+        <div class="container">
+            {{{body}}}
+        </div>
+    </main>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Sistema de Gestión de Usuarios</p>
+        </div>
+    </footer>
+</body>
+</html>

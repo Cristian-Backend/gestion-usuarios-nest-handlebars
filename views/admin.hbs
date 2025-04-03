@@ -1,0 +1,330 @@
+<div class="admin-dashboard">
+    <h2>Panel de Administración</h2>
+    
+    <div class="tabs">
+        <button class="tab active" onclick="openTab('users')">Usuarios</button>
+        <button class="tab" onclick="openTab('create')">Crear Usuario</button>
+    </div>
+    
+    <div id="users" class="tab-content active">
+        <h3>Gestión de Usuarios</h3>
+        
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each users}}
+                <tr>
+                    <td>{{this.fullName}}</td>
+                    <td>{{this.email}}</td>
+                    <td><span class="role-badge {{this.role}}">{{this.role}}</span></td>
+                    <td class="actions-cell">
+                        <div class="actions">
+                            <button class="btn-edit" onclick="editUser('{{this._id}}')"><i class="fas fa-edit"></i> Editar</button>
+                            <button class="btn-delete" onclick="deleteUser('{{this._id}}')"><i class="fas fa-trash"></i> Eliminar</button>
+                        </div>
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+    
+    <div id="create" class="tab-content">
+        <h3>Crear Nuevo Usuario</h3>
+        
+        <form id="createUserForm">
+            <div class="form-group">
+                <label for="fullName">Nombre Completo</label>
+                <input type="text" id="fullName" name="fullName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="role">Rol</label>
+                <select id="role" name="role">
+                    <option value="user">Usuario</option>
+                    <option value="admin">Administrador</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit" class="btn">Crear Usuario</button>
+        </form>
+    </div>
+    
+    <!-- Formulario de edición -->
+    <div id="edit" class="tab-content">
+        <h3>Editar Usuario</h3>
+        
+        <form id="editUserForm">
+            <input type="hidden" id="editUserId">
+            
+            <div class="form-group">
+                <label for="editFullName">Nombre Completo</label>
+                <input type="text" id="editFullName" name="fullName" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="editEmail">Email</label>
+                <input type="email" id="editEmail" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="editRole">Rol</label>
+                <select id="editRole" name="role">
+                    <option value="user">Usuario</option>
+                    <option value="admin">Administrador</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="editPassword">Contraseña (dejar en blanco para mantener la actual)</label>
+                <input type="password" id="editPassword" name="password">
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Actualizar Usuario
+                </button>
+                <button type="button" class="btn-cancel" onclick="cancelEdit()">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{{scripts}}}
+
+<script>
+    function editUser(userId) {
+        console.log('Editando usuario con ID:', userId);
+        // Verificar que el ID no sea undefined o vacío
+        if (!userId) {
+            alert('Error: ID de usuario no válido');
+            return;
+        }
+        
+        // Obtener datos del usuario
+        fetch(`/api/users/${userId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al cargar datos del usuario');
+                }
+                return response.json();
+            })
+            .then(user => {
+                // Rellenar formulario
+                document.getElementById('editUserId').value = user._id;
+                document.getElementById('editFullName').value = user.fullName || '';
+                document.getElementById('editEmail').value = user.email || '';
+                document.getElementById('editRole').value = user.role || 'user';
+                document.getElementById('editPassword').value = '';
+                
+                // Mostrar pestaña de edición
+                showEditTab();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showEditTab();
+            });
+    }
+    
+    // Función auxiliar para mostrar la pestaña de edición
+    function showEditTab() {
+        // Ocultar todos los contenidos de pestañas
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => {
+            content.classList.remove('active');
+        });
+        
+        // Quitar clase activa de todas las pestañas
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        // Mostrar el contenido de la pestaña de edición
+        document.getElementById('edit').classList.add('active');
+    }
+    
+    function cancelEdit() {
+        // Volver a la pestaña de usuarios
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => {
+            content.classList.remove('active');
+        });
+        
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.classList.remove('active');
+        });
+        
+        document.getElementById('users').classList.add('active');
+        document.querySelector('.tab[onclick*="users"]').classList.add('active');
+    }
+    
+    function deleteUser(userId) {
+        if (confirm('¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer.')) {
+            console.log('Eliminando usuario con ID:', userId);
+            
+            fetch(`/api/users/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                credentials: 'include' // Include cookies for authentication
+            })
+            .then(response => {
+                console.log('Respuesta del servidor:', response.status);
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        console.error('Error response:', text);
+                        throw new Error(`Error al eliminar usuario: ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Usuario eliminado:', data);
+                alert('Usuario eliminado correctamente');
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(error.message);
+            });
+        }
+    }
+    
+    // Envío del formulario de creación de usuario
+    document.getElementById('createUserForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const userData = {};
+        formData.forEach((value, key) => {
+            userData[key] = value;
+        });
+        
+        fetch('/api/users', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userData)
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Usuario creado correctamente');
+                this.reset();
+                openTab('users');
+                location.reload();
+            } else {
+                return response.json().then(err => {
+                    throw new Error(err.message || 'Error al crear usuario');
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(error.message);
+        });
+    });
+    
+    // Envío del formulario de edición de usuario
+    document.getElementById('editUserForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const userId = document.getElementById('editUserId').value;
+        console.log('ID del usuario a actualizar:', userId);
+        
+        // Verificar que el ID no sea undefined o vacío
+        if (!userId || userId === 'undefined') {
+            alert('Error: No se pudo obtener el ID del usuario');
+            return;
+        }
+        
+        const formData = new FormData(this);
+        const userData = {};
+        
+        formData.forEach((value, key) => {
+            // Solo incluir contraseña si no está vacía
+            if (key !== 'password' || value.trim() !== '') {
+                userData[key] = value;
+            }
+        });
+        
+        console.log('Datos a enviar:', userData);
+        
+        fetch(`/api/users/${userId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(userData),
+            credentials: 'include' // Include cookies for authentication
+        })
+        .then(response => {
+            console.log('Respuesta del servidor:', response.status);
+            if (!response.ok) {
+                return response.text().then(text => {
+                    console.error('Error response:', text);
+                    throw new Error(`Error al actualizar usuario: ${response.status}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Usuario actualizado:', data);
+            alert('Usuario actualizado correctamente');
+            // Definir la función openTab si no existe (por si acaso)
+            if (typeof openTab !== 'function') {
+                function openTab(tabName) {
+                    // Ocultar todos los contenidos de pestañas
+                    const tabContents = document.querySelectorAll('.tab-content');
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Quitar clase activa de todas las pestañas
+                    const tabs = document.querySelectorAll('.tab');
+                    tabs.forEach(tab => {
+                        tab.classList.remove('active');
+                    });
+                    
+                    // Mostrar el contenido de la pestaña seleccionada
+                    document.getElementById(tabName).classList.add('active');
+                    
+                    // Añadir clase activa a la pestaña clickeada
+                    const activeTab = document.querySelector(`.tab[onclick*="${tabName}"]`);
+                    if (activeTab) {
+                        activeTab.classList.add('active');
+                    }
+                }
+            }
+            location.reload();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(error.message);
+        });
+    });
+</script>
