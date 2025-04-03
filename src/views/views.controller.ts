@@ -5,23 +5,47 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UsersService } from '../users/users.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Controller()
 export class ViewsController {
   constructor(
     private readonly authService: AuthService,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
   ) {}
 
   @Get()
   @Render('index')
-  root(@Req() req: Request) {
-    // Check if user is logged in
-    const user = req.user as any;
-    return { 
-      message: 'Welcome to the application',
-      user
-    };
+  async getIndex(@Req() req: Request) {
+    // Verificar si hay un token en las cookies
+    const token = req.cookies['jwt'];
+    
+    if (token) {
+      try {
+        // Verificar y decodificar el token
+        const decoded = this.jwtService.verify(token, {
+          secret: process.env.JWT_SECRET
+        });
+        
+        // Buscar el usuario por su ID
+        const user = await this.usersService.findById(decoded.sub);
+        
+        // Si el usuario existe, pasar los datos a la vista
+        if (user) {
+          console.log('Usuario autenticado en inicio:', user.email);
+          return { 
+            title: 'Inicio', 
+            user: user 
+          };
+        }
+      } catch (error) {
+        console.error('Error al verificar token:', error);
+      }
+    }
+    
+    // Si no hay token o hubo un error, renderizar la vista sin usuario
+    return { title: 'Inicio', user: null };
   }
 
   @Get('login')
@@ -186,21 +210,10 @@ export class ViewsController {
 
   @Get('logout')
   async logout(@Res() res: Response) {
-    console.log('Logging out user');
+    // Limpiar la cookie del token JWT
+    res.clearCookie('jwt');
     
-    try {
-      // Clear the JWT cookie
-      res.clearCookie('jwt', {
-        httpOnly: true,
-        path: '/'
-      });
-      
-      console.log('Cookie cleared, redirecting to login page');
-      // Redirect to login page
-      return res.redirect('/login');
-    } catch (error) {
-      console.error('Error during logout:', error);
-      return res.redirect('/');
-    }
+    // Redirigir a la página de inicio
+    return res.redirect('/');
   }
 }

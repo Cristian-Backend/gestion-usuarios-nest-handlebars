@@ -5,6 +5,9 @@
         <div class="cta-buttons">
             {{#if user}}
                 <a href="/dashboard" class="btn btn-primary">Ir al Panel</a>
+                {{#if (eq user.role "admin")}}
+                    <a href="/admin" class="btn btn-secondary">Panel de Administración</a>
+                {{/if}}
             {{else}}
                 <a href="/login" class="btn btn-primary">Iniciar Sesión</a>
                 <a href="/register" class="btn btn-secondary">Registrarse</a>

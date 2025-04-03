@@ -1,0 +1,19 @@
+<!-- ... existing code ... -->
+<nav class="navbar">
+  <div class="container">
+    <a href="/" class="navbar-brand">User Management</a>
+    <div class="navbar-menu">
+      {{#if user}}
+        <a href="/dashboard" class="nav-link">Dashboard</a>
+        {{#if (eq user.role "admin")}}
+          <a href="/admin" class="nav-link">Admin Panel</a>
+        {{/if}}
+        <a href="/logout" class="nav-link">Cerrar Sesión</a>
+      {{else}}
+        <a href="/login" class="nav-link">Login</a>
+        <a href="/register" class="nav-link">Register</a>
+      {{/if}}
+    </div>
+  </div>
+</nav>
+<!-- ... existing code ... -->

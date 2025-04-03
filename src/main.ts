@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import * as cookieParser from 'cookie-parser';
+import * as hbs from 'hbs';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -26,6 +27,11 @@ async function bootstrap() {
   
   // Set up global prefix for API routes
   // app.setGlobalPrefix('api'); // Comment this out if it's causing issues with view routes
+  
+  // Registrar helpers de Handlebars
+  hbs.registerHelper('eq', function(a, b) {
+    return a === b;
+  });
   
   await app.listen(3003);
   console.log(`Application is running on: ${await app.getUrl()}`);
