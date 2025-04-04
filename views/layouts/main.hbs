@@ -1,17 +1,18 @@
 <!-- ... existing code ... -->
 <nav class="navbar">
   <div class="container">
-    <a href="/" class="navbar-brand">User Management</a>
+    <a href="/" class="navbar-brand">Sistema de Usuarios</a>
     <div class="navbar-menu">
       {{#if user}}
-        <a href="/dashboard" class="nav-link">Dashboard</a>
+        <a href="/dashboard" class="nav-link">Mi Panel</a>
+        <a href="/profile" class="nav-link">Mi Perfil</a>
         {{#if (eq user.role "admin")}}
-          <a href="/admin" class="nav-link">Admin Panel</a>
+          <a href="/admin" class="nav-link">Panel Admin</a>
         {{/if}}
         <a href="/logout" class="nav-link">Cerrar Sesión</a>
       {{else}}
-        <a href="/login" class="nav-link">Login</a>
-        <a href="/register" class="nav-link">Register</a>
+        <a href="/login" class="nav-link">Iniciar Sesión</a>
+        <a href="/register" class="nav-link">Registrarse</a>
       {{/if}}
     </div>
   </div>

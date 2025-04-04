@@ -99,12 +99,20 @@ export class ViewsController {
   @Get('dashboard')
   @UseGuards(JwtAuthGuard)
   @Render('dashboard')
-  getDashboard(@Req() req: Request) {
+  async getDashboard(@Req() req: Request) {
     const user = req.user as any;
+    
+    // Obtener estadísticas del usuario
+    const lastLogin = new Date().toLocaleString();
+    const accountAge = Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+    
     return { 
       user: {
         ...user,
-        isAdmin: user.role === 'admin'
+        isAdmin: user.role === 'admin',
+        lastLogin,
+        accountAge,
+        // Más estadísticas aquí
       } 
     };
   }
@@ -215,5 +223,42 @@ export class ViewsController {
     
     // Redirigir a la página de inicio
     return res.redirect('/');
+  }
+  
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  @Render('profile')
+  getProfile(@Req() req: Request) {
+    const user = req.user as any;
+    return { 
+      title: 'Mi Perfil',
+      user 
+    };
+  }
+
+  @Post('profile')
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(@Req() req: Request, @Body() updateData: any, @Res() res: Response) {
+    try {
+      const user = req.user as any;
+      
+      // Only update fields that were provided
+      const updateUserDto: any = {};
+      if (updateData.fullName) updateUserDto.fullName = updateData.fullName;
+      if (updateData.email) updateUserDto.email = updateData.email;
+      if (updateData.avatar) updateUserDto.avatar = updateData.avatar;
+      if (updateData.password && updateData.password.trim() !== '') {
+        updateUserDto.password = updateData.password;
+      }
+      
+      // Update user in database
+      await this.usersService.update(user._id, updateUserDto);
+      
+      // Redirect back to profile with success message
+      return res.redirect('/profile?success=true');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      return res.redirect('/profile?error=' + encodeURIComponent(error.message));
+    }
   }
 }
